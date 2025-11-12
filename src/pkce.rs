@@ -17,7 +17,7 @@ fn pkce_challenge(verifier: &str) -> String {
     BASE64URL_NOPAD.encode(&digest)
 }
 
-pub fn pkce_init() ->(String, String, String) {
+pub fn pkce_init() -> (String, String, String) {
     let state = Uuid::new_v4().simple().to_string();
     let verifier = pkce_verifier();
     let challenge = pkce_challenge(&verifier);
