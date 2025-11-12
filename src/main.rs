@@ -6,6 +6,7 @@ fn main() {
     let client: Client = Client::new();
     let (pkce_verifier, pkce_challenge, initial_state) = pkce_init();
 
-    let (auth_code, auth_text) = auth_request(pkce_challenge, initial_state, &client).unwrap();
-    println!("{}", format!("{}: {}", auth_code, auth_text));
+    let (auth_code, auth_token, auth_state) =
+        auth_request(pkce_challenge, initial_state, &client).unwrap();
+    println!("{}", format!("{}: {}", auth_code, auth_token));
 }

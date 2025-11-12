@@ -1,5 +1,6 @@
 use crate::fpl_constants;
 use crate::urls;
+use regex::Regex;
 use reqwest::blocking::Client;
 use reqwest::StatusCode;
 
@@ -7,7 +8,7 @@ pub fn auth_request(
     pkce_challenge: String,
     initial_state: String,
     client: &Client,
-) -> Result<(StatusCode, String), Box<dyn std::error::Error>> {
+) -> Result<(StatusCode, String, String), Box<dyn std::error::Error>> {
     let url = format!("{}{}", urls::BASE_ACCOUNT_URL, urls::AUTH_PATH);
 
     let params = [
@@ -23,6 +24,24 @@ pub fn auth_request(
 
     let status = response.status();
     let html = response.text()?;
+    let access_token = extract_html_access_token(&html)?;
+    let state = extract_html_state(&html)?;
 
-    Ok((status, html))
+    Ok((status, access_token, state))
+}
+
+fn extract_html_access_token(html: &str) -> Result<String, String> {
+    let re = Regex::new(r#""accessToken":"([^"]+)""#).unwrap();
+    re.captures(html)
+        .and_then(|c| c.get(1))
+        .map(|m| m.as_str().to_string())
+        .ok_or_else(|| "Access token not found".to_string())
+}
+
+fn extract_html_state(html: &str) -> Result<String, String> {
+    let re = Regex::new(r#"<input[^>]+name="state"[^>]+value="([^"]+)""#).unwrap();
+    re.captures(html)
+        .and_then(|c| c.get(1))
+        .map(|m| m.as_str().to_string())
+        .ok_or_else(|| "State not found".to_string())
 }
