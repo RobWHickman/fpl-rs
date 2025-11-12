@@ -1,4 +1,4 @@
-use fpl_rs::auth::auth_request;
+use fpl_rs::auth::{access_request, auth_request};
 use fpl_rs::login::login_requests;
 use fpl_rs::pkce::pkce_init;
 use reqwest::blocking::Client;
@@ -19,5 +19,12 @@ fn main() {
     );
 
     let (fpl_login_statuses, fpl_dv_response) = login_requests(&fpl_auth_token, &client).unwrap();
-    println!("LOGIN REQUEST:\n{}", fpl_dv_response)
+    println!("LOGIN REQUEST:\n{}", fpl_dv_response);
+
+    let (fpl_access_status, fpl_auth_code) =
+        access_request(fpl_dv_response, returned_state).unwrap();
+    println!(
+        "AUTH REQUEST:\n{}",
+        format!("{}: {}", fpl_access_status, fpl_auth_code)
+    );
 }
