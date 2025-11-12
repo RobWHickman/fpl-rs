@@ -1,12 +1,11 @@
+use fpl_rs::auth::auth_request;
 use fpl_rs::pkce::pkce_init;
-use fpl_rs::urls;
 use reqwest::blocking::Client;
 
 fn main() {
-    let client = Client::new();
-    let (verifier, challenge, state) = pkce_init();
+    let client: Client = Client::new();
+    let (pkce_verifier, pkce_challenge, initial_state) = pkce_init();
 
-    let auth_url = format!("{}{}", urls.BASE_ACCOUNT_URL, urls.AUTH_PATH);
-
-    println!("all done!")
+    let (auth_code, auth_text) = auth_request(pkce_challenge, initial_state, &client).unwrap();
+    println!("{}", format!("{}: {}", auth_code, auth_text));
 }
