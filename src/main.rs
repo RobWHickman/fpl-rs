@@ -1,5 +1,5 @@
 use fpl_rs::auth::auth_request;
-use fpl_rs::login::interaction_id_request;
+use fpl_rs::login::login_requests;
 use fpl_rs::pkce::pkce_init;
 use reqwest::blocking::Client;
 
@@ -18,10 +18,6 @@ fn main() {
         format!("{}: {}", fpl_auth_code, fpl_auth_token)
     );
 
-    let (fpl_interaction_code, fpl_interaction_id) =
-        interaction_id_request(fpl_auth_token, &client).unwrap();
-    println!(
-        "INTERACTION REQUEST:\n{}",
-        format!("{}: {}", fpl_interaction_code, fpl_interaction_id)
-    );
+    let (fpl_login_statuses, fpl_dv_response) = login_requests(&fpl_auth_token, &client).unwrap();
+    println!("LOGIN REQUEST:\n{}", fpl_dv_response)
 }
