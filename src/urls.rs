@@ -1,3 +1,5 @@
+pub const CLIENT_ID: &str = "bfcbaf69-aade-4c1b-8f00-c1cb8a193030";
+
 pub const BASE_ACCOUNT_URL: &str = "https://account.premierleague.com/";
 pub const BASE_FANTASY_URL: &str = "https://fantasy.premierleague.com/";
 

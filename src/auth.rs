@@ -1,4 +1,3 @@
-use crate::fpl_constants;
 use crate::urls;
 use regex::Regex;
 use reqwest::blocking::Client;
@@ -13,7 +12,7 @@ pub fn auth_request(
     let url = format!("{}{}", urls::BASE_ACCOUNT_URL, urls::AUTH_PATH);
 
     let params = [
-        ("client_id", fpl_constants::CLIENT_ID),
+        ("client_id", urls::CLIENT_ID),
         ("redirect_uri", urls::BASE_FANTASY_URL),
         ("response_type", "code"),
         ("state", &initial_state),
@@ -94,7 +93,7 @@ pub fn access_token_exchange(
         ("redirect_uri", urls::BASE_FANTASY_URL),
         ("code", &auth_code),
         ("code_verifier", &verifier),
-        ("client_id", fpl_constants::CLIENT_ID),
+        ("client_id", urls::CLIENT_ID),
     ];
 
     let response = client.post(url).form(&params).send()?.error_for_status()?;
