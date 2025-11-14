@@ -5,10 +5,11 @@ use fpl_rs::pkce::pkce_init;
 use fpl_rs::profile::profile_request;
 use log::{debug, info};
 use reqwest::blocking::Client;
+use dotenv::dotenv;
 
 fn main() {
-    env_logger::Builder::from_default_env()
-        .filter_level(log::LevelFilter::Info)
+    dotenv().ok();  
+    env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info"))
         .init();
 
     let client: Client = Client::new();
