@@ -1,6 +1,7 @@
 # Rust FPL Authorisation
 
-![Tests](https://github.com/RobWHickman/fpl-rs/actions/workflows/tests.yml/badge.svg)
+![Tests](https://github.com/RobWHickman/fpl-rs/actions/workflows/tests.yaml/badge.svg)
+![Integration](https://github.com/RobWHickman/fpl-rs/actions/workflows/integration.yaml/badge.svg)
 
 
 Simple utilty to return a Fantasy Premier League profile with an access token attached that can be used for API access. 

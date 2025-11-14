@@ -1,0 +1,34 @@
+name: Auth Integration Test
+
+on:
+  schedule:
+    - cron: '0 10 * * *'
+  workflow_dispatch:
+
+jobs:
+  auth-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Rust
+      uses: actions-rust-lang/setup-rust-toolchain@v1
+      
+    - name: Run authentication flow
+      env:
+        EMAIL: ${{ secrets.EMAIL }}
+        PASSWORD: ${{ secrets.PASSWORD }}
+        RUST_LOG: info
+      run: |
+        OUTPUT=$(cargo run 2>&1)
+        echo "$OUTPUT"
+        
+        # Check that we got an access token in the output
+        if echo "$OUTPUT" | grep -q "Access Token: eyJ"; then
+          echo "✅ Successfully authenticated and received access token"
+          exit 0
+        else
+          echo "❌ Failed to receive access token"
+          exit 1
+        fi
