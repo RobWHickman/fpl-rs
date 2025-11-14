@@ -15,7 +15,7 @@ fn main() {
         auth_request(pkce_challenge, initial_state, &client).unwrap();
     if debug {
         println!(
-            "[AUTH] Status: {}, Token: {}",
+            "[AUTH] Status: {}, Token: {:?}",
             _fpl_auth_code, fpl_auth_token
         );
     }
@@ -32,7 +32,7 @@ fn main() {
         access_request(fpl_dv_response, returned_state).unwrap();
     if debug {
         println!(
-            "[ACCESS] Status: {}, Auth Code: {}",
+            "[ACCESS] Status: {}, Auth Code: {:?}",
             _fpl_access_status, fpl_auth_code
         );
     }
@@ -41,15 +41,16 @@ fn main() {
         access_token_exchange(fpl_auth_code, pkce_verifier, &client).unwrap();
     if debug {
         println!(
-            "[EXCHANGE] Status: {}, Access Token: {}",
+            "[EXCHANGE] Status: {}, Access Token: {:?}",
             _fpl_exchange_status, fpl_access_code
         );
     }
 
-    let (_fpl_profile_status, fpl_profile) = profile_request(&fpl_access_code, &client).unwrap();
+    let (_fpl_profile_status, fpl_profile) = profile_request(fpl_access_code, &client).unwrap();
     if debug {
         println!("[PROFILE] Status: {}", _fpl_profile_status);
     }
 
     println!("{}", fpl_profile);
+    println!("\nAccess Token: {}", fpl_profile.access_token());
 }

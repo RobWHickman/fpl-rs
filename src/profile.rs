@@ -2,6 +2,7 @@ use crate::urls;
 use reqwest::blocking::Client;
 use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::StatusCode;
+use secrecy::{ExposeSecret, SecretString};
 use std::fmt;
 
 #[derive(Debug)]
@@ -10,7 +11,7 @@ pub struct Profile {
     name: String,
     email: Option<String>,
     sso_id: String,
-    access_token: String,
+    access_token: SecretString,
 }
 
 impl fmt::Display for Profile {
@@ -20,19 +21,25 @@ impl fmt::Display for Profile {
         writeln!(f, "  name: {}", self.name)?;
         writeln!(f, "  email: {:?}", self.email)?;
         writeln!(f, "  sso_id: {}", self.sso_id)?;
-        write!(f, "  access_token: {}", self.access_token)
+        write!(f, "  access_token: {:?}", self.access_token) // secret string redacted
+    }
+}
+
+impl Profile {
+    pub fn access_token(&self) -> &str {
+        self.access_token.expose_secret()
     }
 }
 
 pub fn profile_request(
-    access_token: &str,
+    access_token: SecretString,
     client: &Client,
 ) -> Result<(StatusCode, Profile), Box<dyn std::error::Error>> {
     let url = format!("{}{}", urls::BASE_FANTASY_URL, urls::ME_PATH);
     let mut headers = HeaderMap::new();
     headers.insert(
         "X-API-Authorization",
-        HeaderValue::from_str(&format!("Bearer {}", access_token))?,
+        HeaderValue::from_str(&format!("Bearer {}", access_token.expose_secret()))?,
     );
 
     let response = client.get(&url).headers(headers.clone()).send()?;
@@ -56,7 +63,7 @@ pub fn profile_request(
             .as_str()
             .ok_or("sso_id not found")?
             .to_string(),
-        access_token: access_token.to_string(),
+        access_token: access_token,
     };
 
     Ok((status, profile))

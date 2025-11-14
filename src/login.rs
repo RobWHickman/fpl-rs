@@ -1,18 +1,21 @@
+use crate::secrets::LoginSecrets;
 use crate::urls;
 use reqwest::blocking::Client;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use reqwest::StatusCode;
+use secrecy::{ExposeSecret, SecretString};
 use serde_json;
 use serde_json::json;
 
 pub fn login_requests(
-    access_token: &str,
+    access_token: &SecretString,
     client: &Client,
 ) -> Result<(Vec<StatusCode>, String), Box<dyn std::error::Error>> {
+    let secrets = LoginSecrets::from_env()?;
     let mut headers = HeaderMap::new();
     headers.insert(
         AUTHORIZATION,
-        HeaderValue::from_str(&format!("Bearer {}", access_token))?,
+        HeaderValue::from_str(&format!("Bearer {}", access_token.expose_secret()))?,
     );
     headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
 
@@ -20,8 +23,8 @@ pub fn login_requests(
         "id": serde_json::Value::Null,
         "parameters": {
             "buttonValue": "SIGNON",
-            "username": std::env::var("EMAIL")?,
-            "password": std::env::var("PASSWORD")?,
+            "username": secrets.email(),
+            "password": secrets.password().expose_secret(),
         },
         "eventName": "continue",
     });
