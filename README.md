@@ -15,10 +15,10 @@ from the root directory. Expected return of a [Profile](https://github.com/RobWH
 If any of the requests are failing try
 
 ```
-DEBUG=1 cargo run
+RUST_LOG=debug cargo run
 ```
 
-to diagnose. All requests should return a [200] status code except the [access request](https://github.com/RobWHickman/fpl-rs/blob/master/src/main.rs#L31) which should return a [302].
+to diagnose. This can also be set in the `.env`. All requests should return a [200] status code except the [access request](https://github.com/RobWHickman/fpl-rs/blob/master/src/main.rs#L31) which should return a [302].
 
 ## API integration
 
@@ -59,3 +59,7 @@ Only needs two environment variables specific to the user:
 - `PASSWORD`: the password on the account. Used to login at the homepage. Can be changed using [account management](https://www.premierleague.com/en/settings/account-security).
 
 These are expected to be found in the environment- the easiest way by storing as strings in a .gitignored `.env` file.
+
+Not strictly necessary, but can also control the level of debugging by using
+-`RUST_LOG=debug` or whatever the desired logging level 
+in the `.env`. N.b. that the access token for the account is printed at the `INFO` level.
