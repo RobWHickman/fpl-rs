@@ -54,19 +54,15 @@ pub fn access_request(
     let no_redirect_client = reqwest::blocking::Client::builder()
         .redirect(reqwest::redirect::Policy::none())
         .build()?;
-    
+
     let url = format!("{}{}", urls::BASE_ACCOUNT_URL, urls::RESUME_PATH);
 
     let params = [("dvResponse", dv_response), ("state", new_state)];
 
-    let response: reqwest::blocking::Response = no_redirect_client
-        .post(url)
-        .form(&params)
-        .send()?;
+    let response: reqwest::blocking::Response =
+        no_redirect_client.post(url).form(&params).send()?;
 
     let status = response.status();
-    println!("Status: {}", status);
-    println!("Headers: {:?}", response.headers());
 
     let location = response
         .headers()
@@ -84,4 +80,31 @@ fn extract_html_auth_code(location: &str) -> Result<String, Box<dyn std::error::
         .and_then(|c| c.get(1))
         .map(|m| m.as_str().to_string())
         .ok_or_else(|| "Auth code not found".into())
+}
+
+pub fn access_token_exchange(
+    auth_code: String,
+    verifier: String,
+    client: &Client,
+) -> Result<(StatusCode, String), Box<dyn std::error::Error>> {
+    let url: String = format!("{}{}", urls::BASE_ACCOUNT_URL, urls::TOKEN_PATH);
+
+    let params = [
+        ("grant_type", "authorization_code"),
+        ("redirect_uri", urls::BASE_FANTASY_URL),
+        ("code", &auth_code),
+        ("code_verifier", &verifier),
+        ("client_id", fpl_constants::CLIENT_ID),
+    ];
+
+    let response = client.post(url).form(&params).send()?.error_for_status()?;
+
+    let status = response.status();
+    let response_json = response.error_for_status()?.json::<serde_json::Value>()?;
+    let access_token = response_json["access_token"]
+        .as_str()
+        .ok_or("access_token not found")?
+        .to_string();
+
+    Ok((status, access_token))
 }
