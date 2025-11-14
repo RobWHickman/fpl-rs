@@ -3,12 +3,13 @@ use regex::Regex;
 use reqwest::blocking::Client;
 use reqwest::header::LOCATION;
 use reqwest::StatusCode;
+use secrecy::{ExposeSecret, SecretString};
 
 pub fn auth_request(
     pkce_challenge: String,
     initial_state: String,
     client: &Client,
-) -> Result<(StatusCode, String, String), Box<dyn std::error::Error>> {
+) -> Result<(StatusCode, SecretString, String), Box<dyn std::error::Error>> {
     let url = format!("{}{}", urls::BASE_ACCOUNT_URL, urls::AUTH_PATH);
 
     let params = [
@@ -25,9 +26,10 @@ pub fn auth_request(
     let status = response.status();
     let html = response.text()?;
     let access_token = extract_html_access_token(&html)?;
+    let access_token_secret = SecretString::new(access_token.into_boxed_str());
     let state = extract_html_state(&html)?;
 
-    Ok((status, access_token, state))
+    Ok((status, access_token_secret, state))
 }
 
 fn extract_html_access_token(html: &str) -> Result<String, String> {
@@ -49,7 +51,7 @@ fn extract_html_state(html: &str) -> Result<String, String> {
 pub fn access_request(
     dv_response: String,
     new_state: String,
-) -> Result<(StatusCode, String), Box<dyn std::error::Error>> {
+) -> Result<(StatusCode, SecretString), Box<dyn std::error::Error>> {
     let no_redirect_client = reqwest::blocking::Client::builder()
         .redirect(reqwest::redirect::Policy::none())
         .build()?;
@@ -70,7 +72,8 @@ pub fn access_request(
         .to_str()?;
 
     let auth_code = extract_html_auth_code(location)?;
-    Ok((status, auth_code))
+    let auth_code_secret = SecretString::new(auth_code.into_boxed_str());
+    Ok((status, auth_code_secret))
 }
 
 fn extract_html_auth_code(location: &str) -> Result<String, Box<dyn std::error::Error>> {
@@ -82,16 +85,16 @@ fn extract_html_auth_code(location: &str) -> Result<String, Box<dyn std::error::
 }
 
 pub fn access_token_exchange(
-    auth_code: String,
+    auth_code: SecretString,
     verifier: String,
     client: &Client,
-) -> Result<(StatusCode, String), Box<dyn std::error::Error>> {
+) -> Result<(StatusCode, SecretString), Box<dyn std::error::Error>> {
     let url: String = format!("{}{}", urls::BASE_ACCOUNT_URL, urls::TOKEN_PATH);
 
     let params = [
         ("grant_type", "authorization_code"),
         ("redirect_uri", urls::BASE_FANTASY_URL),
-        ("code", &auth_code),
+        ("code", &auth_code.expose_secret()),
         ("code_verifier", &verifier),
         ("client_id", urls::CLIENT_ID),
     ];
@@ -104,6 +107,7 @@ pub fn access_token_exchange(
         .as_str()
         .ok_or("access_token not found")?
         .to_string();
+    let access_token_secret = SecretString::new(access_token.into_boxed_str());
 
-    Ok((status, access_token))
+    Ok((status, access_token_secret))
 }

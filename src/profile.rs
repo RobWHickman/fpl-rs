@@ -2,7 +2,7 @@ use crate::urls;
 use reqwest::blocking::Client;
 use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::StatusCode;
-use secrecy::SecretString;
+use secrecy::{ExposeSecret, SecretString};
 use std::fmt;
 
 #[derive(Debug)]
@@ -25,15 +25,21 @@ impl fmt::Display for Profile {
     }
 }
 
+impl Profile {
+    pub fn access_token(&self) -> &str {
+        self.access_token.expose_secret()
+    }
+}
+
 pub fn profile_request(
-    access_token: &str,
+    access_token: SecretString,
     client: &Client,
 ) -> Result<(StatusCode, Profile), Box<dyn std::error::Error>> {
     let url = format!("{}{}", urls::BASE_FANTASY_URL, urls::ME_PATH);
     let mut headers = HeaderMap::new();
     headers.insert(
         "X-API-Authorization",
-        HeaderValue::from_str(&format!("Bearer {}", access_token))?,
+        HeaderValue::from_str(&format!("Bearer {}", access_token.expose_secret()))?,
     );
 
     let response = client.get(&url).headers(headers.clone()).send()?;
@@ -57,7 +63,7 @@ pub fn profile_request(
             .as_str()
             .ok_or("sso_id not found")?
             .to_string(),
-        access_token: SecretString::new(access_token.to_string().into_boxed_str()),
+        access_token: access_token,
     };
 
     Ok((status, profile))
