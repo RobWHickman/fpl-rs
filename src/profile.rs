@@ -10,15 +10,17 @@ pub struct Profile {
     name: String,
     email: Option<String>,
     sso_id: String,
+    access_token: String,
 }
 
 impl fmt::Display for Profile {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "Profile(id={}, name={}, email={:?}, sso_id={})",
-            self.id, self.name, self.email, self.sso_id
-        )
+        writeln!(f, "Profile:")?;
+        writeln!(f, "  id: {}", self.id)?;
+        writeln!(f, "  name: {}", self.name)?;
+        writeln!(f, "  email: {:?}", self.email)?;
+        writeln!(f, "  sso_id: {}", self.sso_id)?;
+        write!(f, "  access_token: {}", self.access_token)
     }
 }
 
@@ -54,6 +56,7 @@ pub fn profile_request(
             .as_str()
             .ok_or("sso_id not found")?
             .to_string(),
+        access_token: access_token.to_string(),
     };
 
     Ok((status, profile))

@@ -20,5 +20,5 @@ fn main() {
         access_token_exchange(fpl_auth_code, pkce_verifier, &client).unwrap();
 
     let (_fpl_profile_status, fpl_profile) = profile_request(&fpl_access_code, &client).unwrap();
-    println!("PROFILE:\n{}", fpl_profile);
+    println!("{}", fpl_profile);
 }
