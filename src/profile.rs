@@ -2,6 +2,7 @@ use crate::urls;
 use reqwest::blocking::Client;
 use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::StatusCode;
+use secrecy::SecretString;
 use std::fmt;
 
 #[derive(Debug)]
@@ -10,7 +11,7 @@ pub struct Profile {
     name: String,
     email: Option<String>,
     sso_id: String,
-    access_token: String,
+    access_token: SecretString,
 }
 
 impl fmt::Display for Profile {
@@ -20,7 +21,7 @@ impl fmt::Display for Profile {
         writeln!(f, "  name: {}", self.name)?;
         writeln!(f, "  email: {:?}", self.email)?;
         writeln!(f, "  sso_id: {}", self.sso_id)?;
-        write!(f, "  access_token: {}", self.access_token)
+        write!(f, "  access_token: {:?}", self.access_token) // secret string redacted
     }
 }
 
@@ -56,7 +57,7 @@ pub fn profile_request(
             .as_str()
             .ok_or("sso_id not found")?
             .to_string(),
-        access_token: access_token.to_string(),
+        access_token: SecretString::new(access_token.to_string().into_boxed_str()),
     };
 
     Ok((status, profile))

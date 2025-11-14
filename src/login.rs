@@ -1,11 +1,11 @@
+use crate::secrets::LoginSecrets;
 use crate::urls;
 use reqwest::blocking::Client;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use reqwest::StatusCode;
+use secrecy::ExposeSecret;
 use serde_json;
 use serde_json::json;
-use crate::secrets::LoginSecrets;
-use secrecy::ExposeSecret;
 
 pub fn login_requests(
     access_token: &str,
