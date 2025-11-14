@@ -61,5 +61,7 @@ Only needs two environment variables specific to the user:
 These are expected to be found in the environment- the easiest way by storing as strings in a .gitignored `.env` file.
 
 Not strictly necessary, but can also control the level of debugging by using
--`RUST_LOG=debug` or whatever the desired logging level 
+
+-`RUST_LOG=debug` or whatever the desired logging level
+
 in the `.env`. N.b. that the access token for the account is printed at the `INFO` level.
