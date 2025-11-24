@@ -1,3 +1,4 @@
+use dotenv::dotenv;
 use env_logger;
 use fpl_rs::auth::{access_request, access_token_exchange, auth_request};
 use fpl_rs::login::login_requests;
@@ -5,12 +6,10 @@ use fpl_rs::pkce::pkce_init;
 use fpl_rs::profile::profile_request;
 use log::{debug, info};
 use reqwest::blocking::Client;
-use dotenv::dotenv;
 
 fn main() {
-    dotenv().ok();  
-    env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info"))
-        .init();
+    dotenv().ok();
+    env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
 
     let client: Client = Client::new();
     let (pkce_verifier, pkce_challenge, initial_state) = pkce_init();

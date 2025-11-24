@@ -63,7 +63,7 @@ pub fn profile_request(
             .as_str()
             .ok_or("sso_id not found")?
             .to_string(),
-        access_token: access_token,
+        access_token,
     };
 
     Ok((status, profile))
