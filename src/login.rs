@@ -6,6 +6,7 @@ use reqwest::StatusCode;
 use secrecy::{ExposeSecret, SecretString};
 use serde_json;
 use serde_json::json;
+use crate::error::FplError;
 
 pub fn login_requests(
     access_token: &SecretString,
@@ -43,24 +44,40 @@ pub fn login_requests(
         let status = response.status();
         status_responses.push(status);
 
+                let status = response.status();
+        status_responses.push(status);
+
         response_json = response.error_for_status()?.json::<serde_json::Value>()?;
+
+        let interaction_id = response_json["interactionId"]
+            .as_str()
+            .ok_or_else(|| FplError::JsonField("interactionId".to_string()))?;
 
         headers.insert(
             "interactionId",
-            HeaderValue::from_str(response_json["interactionId"].as_str().unwrap())?,
+            HeaderValue::from_str(interaction_id)?
         );
-        json_body["id"] = response_json["id"].clone();
+
+        let response_id: &str = response_json["id"]
+            .as_str()
+            .ok_or_else(|| FplError::JsonField("id".to_string()))?;
+        json_body["id"] = serde_json::Value::String(response_id.to_string());
+
+        let connection_id = response_json["connectionId"]
+            .as_str()
+            .ok_or_else(|| FplError::JsonField("connectionId".to_string()))?;
+
         request_url = format!(
             "{}{}/{}/capabilities/customHTMLTemplate",
             urls::BASE_ACCOUNT_URL,
             urls::LOGIN_PATH,
-            response_json["connectionId"].as_str().unwrap()
+            connection_id
         );
     }
 
     let dv_response = response_json["dvResponse"]
         .as_str()
-        .ok_or("dvResponse not found")?
+        .ok_or_else(|| FplError::JsonField("dvResponse".to_string()))?
         .to_string();
 
     Ok((status_responses, dv_response))

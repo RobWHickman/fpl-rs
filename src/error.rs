@@ -13,4 +13,7 @@ pub enum FplError {
 
     #[error("Invalid regex pattern: {0}")]
     RegexError(#[from] regex::Error),
+
+    #[error("Field not found in JSON return: {0}")]
+    JsonField(String),
 }
