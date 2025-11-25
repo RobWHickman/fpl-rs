@@ -1,3 +1,4 @@
+use crate::error::FplError;
 use crate::secrets::LoginSecrets;
 use crate::urls;
 use reqwest::blocking::Client;
@@ -6,12 +7,11 @@ use reqwest::StatusCode;
 use secrecy::{ExposeSecret, SecretString};
 use serde_json;
 use serde_json::json;
-use crate::error::FplError;
 
 pub fn login_requests(
     access_token: &SecretString,
     client: &Client,
-) -> Result<(Vec<StatusCode>, String), Box<dyn std::error::Error>> {
+) -> Result<(Vec<StatusCode>, String), FplError> {
     let secrets = LoginSecrets::from_env()?;
     let mut headers = HeaderMap::new();
     headers.insert(
@@ -44,7 +44,7 @@ pub fn login_requests(
         let status = response.status();
         status_responses.push(status);
 
-                let status = response.status();
+        let status = response.status();
         status_responses.push(status);
 
         response_json = response.error_for_status()?.json::<serde_json::Value>()?;
@@ -53,10 +53,7 @@ pub fn login_requests(
             .as_str()
             .ok_or_else(|| FplError::JsonField("interactionId".to_string()))?;
 
-        headers.insert(
-            "interactionId",
-            HeaderValue::from_str(interaction_id)?
-        );
+        headers.insert("interactionId", HeaderValue::from_str(interaction_id)?);
 
         let response_id: &str = response_json["id"]
             .as_str()

@@ -10,7 +10,7 @@ pub fn auth_request(
     pkce_challenge: &str,
     initial_state: &str,
     client: &Client,
-) -> Result<(StatusCode, SecretString, String), Box<dyn std::error::Error>> {
+) -> Result<(StatusCode, SecretString, String), FplError> {
     let url = format!("{}{}", urls::BASE_ACCOUNT_URL, urls::AUTH_PATH);
 
     let params = [
@@ -38,7 +38,7 @@ fn extract_html_access_token(html: &str) -> Result<String, FplError> {
     re.captures(html)
         .and_then(|c| c.get(1))
         .map(|m| m.as_str().to_string())
-        .ok_or( FplError::AccessTokenNotFound)
+        .ok_or(FplError::AccessTokenNotFound)
 }
 
 fn extract_html_state(html: &str) -> Result<String, FplError> {
@@ -46,13 +46,13 @@ fn extract_html_state(html: &str) -> Result<String, FplError> {
     re.captures(html)
         .and_then(|c| c.get(1))
         .map(|m| m.as_str().to_string())
-        .ok_or( FplError::StateNotFound)
+        .ok_or(FplError::StateNotFound)
 }
 
 pub fn access_request(
     dv_response: String,
     new_state: String,
-) -> Result<(StatusCode, SecretString), Box<dyn std::error::Error>> {
+) -> Result<(StatusCode, SecretString), FplError> {
     let no_redirect_client = reqwest::blocking::Client::builder()
         .redirect(reqwest::redirect::Policy::none())
         .build()?;
@@ -69,7 +69,7 @@ pub fn access_request(
     let location = response
         .headers()
         .get(LOCATION)
-        .ok_or("Location header not found")?
+        .ok_or_else(|| FplError::MissingHeader("Location".to_string()))?
         .to_str()?;
 
     let auth_code = extract_html_auth_code(location)?;
@@ -82,14 +82,14 @@ fn extract_html_auth_code(location: &str) -> Result<String, FplError> {
     re.captures(location)
         .and_then(|c| c.get(1))
         .map(|m| m.as_str().to_string())
-        .ok_or( FplError::AuthCodeNotFound)
+        .ok_or(FplError::AuthCodeNotFound)
 }
 
 pub fn access_token_exchange(
     auth_code: &SecretString,
     verifier: &str,
     client: &Client,
-) -> Result<(StatusCode, SecretString), Box<dyn std::error::Error>> {
+) -> Result<(StatusCode, SecretString), FplError> {
     let url: String = format!("{}{}", urls::BASE_ACCOUNT_URL, urls::TOKEN_PATH);
 
     let params = [
@@ -106,7 +106,7 @@ pub fn access_token_exchange(
     let response_json = response.error_for_status()?.json::<serde_json::Value>()?;
     let access_token = response_json["access_token"]
         .as_str()
-        .ok_or("access_token not found")?
+        .ok_or_else(|| FplError::JsonField("access_token".to_string()))?
         .to_string();
     let access_token_secret = SecretString::new(access_token.into_boxed_str());
 
