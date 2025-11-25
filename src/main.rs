@@ -15,7 +15,7 @@ fn main() {
     let (pkce_verifier, pkce_challenge, initial_state) = pkce_init();
 
     let (_fpl_auth_code, fpl_auth_token, returned_state) =
-        auth_request(pkce_challenge, initial_state, &client).unwrap();
+        auth_request(&pkce_challenge, &initial_state, &client).unwrap();
     debug!(
         "[AUTH] Status: {}, Token: {:?}",
         _fpl_auth_code, fpl_auth_token
@@ -35,7 +35,7 @@ fn main() {
     );
 
     let (_fpl_exchange_status, fpl_access_code) =
-        access_token_exchange(fpl_auth_code, pkce_verifier, &client).unwrap();
+        access_token_exchange(&fpl_auth_code, &pkce_verifier, &client).unwrap();
     debug!(
         "[EXCHANGE] Status: {}, Access Token: {:?}",
         _fpl_exchange_status, fpl_access_code
