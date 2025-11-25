@@ -8,6 +8,7 @@
 // 2. `PASSWORD`
 // See README for more.
 
+use crate::error::FplError;
 use secrecy::SecretString;
 use std::env;
 
@@ -18,11 +19,12 @@ pub struct LoginSecrets {
 }
 
 impl LoginSecrets {
-    pub fn from_env() -> Result<Self, String> {
-        let email =
-            env::var("EMAIL").map_err(|_| "EMAIL environment variable not set".to_string())?;
-        let password = env::var("PASSWORD")
-            .map_err(|_| "PASSWORD environment variable not set".to_string())?;
+    pub fn from_env() -> Result<Self, FplError> {
+        let email: String =
+            env::var("EMAIL").map_err(|_| FplError::MissingEnvVar("EMAIL".to_string()))?;
+
+        let password =
+            env::var("PASSWORD").map_err(|_| FplError::MissingEnvVar("PASSWORD".to_string()))?;
 
         Ok(LoginSecrets {
             email,
@@ -30,12 +32,13 @@ impl LoginSecrets {
         })
     }
 
+    #[must_use]
     pub fn email(&self) -> &str {
         &self.email
     }
 
+    #[must_use]
     pub fn password(&self) -> &SecretString {
-        // Changed
         &self.password
     }
 }

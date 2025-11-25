@@ -1,3 +1,4 @@
+use crate::error::FplError;
 use crate::urls;
 use reqwest::blocking::Client;
 use reqwest::header::{HeaderMap, HeaderValue};
@@ -7,7 +8,7 @@ use std::fmt;
 
 #[derive(Debug)]
 pub struct Profile {
-    id: i32,
+    id: i64,
     name: String,
     email: Option<String>,
     sso_id: String,
@@ -26,6 +27,7 @@ impl fmt::Display for Profile {
 }
 
 impl Profile {
+    #[must_use]
     pub fn access_token(&self) -> &str {
         self.access_token.expose_secret()
     }
@@ -34,7 +36,7 @@ impl Profile {
 pub fn profile_request(
     access_token: SecretString,
     client: &Client,
-) -> Result<(StatusCode, Profile), Box<dyn std::error::Error>> {
+) -> Result<(StatusCode, Profile), FplError> {
     let url = format!("{}{}", urls::BASE_FANTASY_URL, urls::ME_PATH);
     let mut headers = HeaderMap::new();
     headers.insert(
@@ -50,7 +52,7 @@ pub fn profile_request(
     let profile = Profile {
         id: response_json["player"]["entry"]
             .as_i64()
-            .ok_or("id not found")? as i32,
+            .ok_or_else(|| FplError::JsonField("id".to_string()))? as i64,
         name: format!(
             "{} {}",
             response_json["player"]["first_name"].as_str().unwrap_or(""),
@@ -58,12 +60,12 @@ pub fn profile_request(
         ),
         email: response_json["player"]["email"]
             .as_str()
-            .map(|s| s.to_string()),
+            .map(std::string::ToString::to_string),
         sso_id: response_json["player"]["sso_id"]
             .as_str()
-            .ok_or("sso_id not found")?
+            .ok_or_else(|| FplError::JsonField("sso_id".to_string()))?
             .to_string(),
-        access_token: access_token,
+        access_token,
     };
 
     Ok((status, profile))
