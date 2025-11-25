@@ -21,8 +21,7 @@ fn main() -> Result<(), FplError> {
     let (fpl_login_statuses, fpl_dv_response) = login_requests(&fpl_auth_token, &client)?;
     debug!("[LOGIN] Statuses: {fpl_login_statuses:?}, DV Response: {fpl_dv_response}");
 
-    let (fpl_access_status, fpl_auth_code) =
-        access_request(fpl_dv_response, returned_state)?;
+    let (fpl_access_status, fpl_auth_code) = access_request(fpl_dv_response, returned_state)?;
     debug!("[ACCESS] Status: {fpl_access_status}, Auth Code: {fpl_auth_code:?}");
 
     let (fpl_exchange_status, fpl_access_code) =

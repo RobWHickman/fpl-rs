@@ -25,7 +25,7 @@ pub enum FplError {
 
     #[error("Invalid header value encoding: {0}")]
     InvalidHeaderEncoding(#[from] reqwest::header::ToStrError),
-    
+
     #[error("Missing environment variable: {0}")]
     MissingEnvVar(String),
 
